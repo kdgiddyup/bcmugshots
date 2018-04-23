@@ -54,7 +54,7 @@ module.exports = (app) => {
         };
 
         // make request to bookingSrc URI, a page of XML passed into the callback as "xml"
-        request(options).then(function (xml) {
+        request(options).then( (xml)=> {
 
             // turn xml into JSON as "result"; thank you, xml2js.parseString(), for doing the heavy lifting
             parseString(xml, (err, result)=> {
