@@ -1,0 +1,31 @@
+{
+  "name": "bcdcmugshotsapi",
+  "version": "1.0.0",
+  "description": "grabs booking info from Beaufort County Detention Center xml feed",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kdgiddyup/bcdcMugshots.git"
+  },
+  "author": "kdgiddyup",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kdgiddyup/bcdcMugshots/issues"
+  },
+  "homepage": "https://github.com/kdgiddyup/bcdcMugshots#readme",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "cors": "^2.8.4",
+    "dotenv": "^4.0.0",
+    "express": "^4.16.1",
+    "logger": "0.0.1",
+    "morgan": "^1.9.0",
+    "request": "^2.83.0",
+    "request-promise": "^4.2.2",
+    "xml2js": "^0.4.19"
+  }
+}
