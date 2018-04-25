@@ -1,3 +1,4 @@
+console.log(type);
 // establish 90-day boundary
 var today = new Date();
 today.setHours(0, 0, 0, 0);
@@ -27,7 +28,8 @@ if (bn && !detaineeDate) {
 
 // where is our API?
 // deploy: update with new API url
-var ajaxSrc = "http://localhost:3000/mugshots/api";
+//var ajaxSrc = "http://localhost:3000/mugshots/api";
+var ajaxSrc = "http://com.mugshots.local:8888/server/v1.1.php";
 
 // for filtering purposes, create an array of stringified detainee data
 var filterSource = [];
@@ -46,7 +48,7 @@ $(document).ready(function() {
   }
 
   // if this is a story page, we don't need a lot of data, just one day's worth, the detaineeDate
-  if (detaineeDate != null) {
+  if (type === "detail") {
     detaineeDate = new Date(parseInt(detaineeDate));
     var daysBack = Math.round((today - detaineeDate) / (1000 * 60 * 60 * 24));
     // get data, going back 1 extra day for safety
@@ -184,7 +186,7 @@ function getData(start, end, qStart, qEnd, terms) {
     .removeClass()
     .addClass("fa fa-arrow-down");
 
-  $.get(ajaxSrc + "/" + start + "/" + end, function(response) {
+  $.get(ajaxSrc + "?start=" + start + "&end=" + end, function(response) {
     if (response.success) {
       // are we on index page or details page?
       var pageType = $(".bookings").attr("data-page-type");
