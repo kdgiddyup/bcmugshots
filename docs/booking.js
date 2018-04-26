@@ -15,7 +15,7 @@ var qTerms = bookingData.terms || "";
 
 // where is our API?
 //var ajaxSrc = "http://www.islandpacket.com/cgi-bin/mugshotsV2.php";
-var ajaxSrc = "./../php/server/mugshotsV2.php";
+var ajaxSrc = "http://dev.nandointeractive.com/mugshots/";
 // for filtering purposes, create an array of stringified detainee data
 var filterSource = [];
 
@@ -585,12 +585,13 @@ function displayInmate(inmate) {
 // we target divs of class ".detaineeIndex" to show/hide by booking number attribute (data-booking-number)
 */
 function runFilter(value) {
-  console.log(value);
   // update local storage
-  var bookingData = JSON.parse(localStorage.getItem("bcBookingData"));
-  bookingData.terms = value;
-  localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
 
+  var bookingData = JSON.parse(localStorage.getItem("bcBookingData"));
+  if (bookingData) {
+    bookingData.terms = value;
+    localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
+  }
   // entered just a space? show everyone and get out
   if (!value) {
     $(".detaineeIndex").show("fast");
