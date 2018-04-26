@@ -509,11 +509,9 @@ function displayInmate(inmate) {
           offenses = [offenses];
         }
         for (var offIndex = 0; offIndex < offenses.length; offIndex++) {
-          var thisOff = offenses[offIndex].ol;
-
           detailBlock +=
             '<div class="offense"><span class="leadin">Offense:</span> ' +
-            thisOff +
+            offenses[offIndex].ol +
             "<br/>";
 
           // if statute is not the same as the offense, create a statute row
@@ -523,11 +521,20 @@ function displayInmate(inmate) {
               offenses[offIndex].os +
               "<br/>";
           }
+          var warrant =
+            offenses[offIndex].ow.constructor == Object
+              ? "No information"
+              : offenses[offIndex].ow;
+          var court =
+            offenses[offIndex].oc.constructor == Object
+              ? "No information"
+              : offenses[offIndex].oc;
+
           detailBlock +=
             '<span class="leadin">Warrant:</span> ' +
-            offenses[offIndex].ow +
+            warrant +
             '<br/><span class="leadin">Court:</span> ' +
-            offenses[offIndex].oc +
+            court +
             "<br/>";
 
           // if bond info exists, add it
