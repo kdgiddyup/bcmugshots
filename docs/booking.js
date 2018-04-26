@@ -1,4 +1,3 @@
-console.log(type);
 // establish 90-day boundary
 var today = new Date();
 today.setHours(0, 0, 0, 0);
@@ -8,29 +7,15 @@ var minDate = new Date().setDate(today.getDate() - 90);
 minDate = new Date(minDate).toISOString().split("T")[0];
 
 // get info from localStorage, if any
-var bookingData = JSON.parse(localStorage.getItem("bcBookingData")) || {};
-var bn = bookingData.bn;
-var detaineeDate = bookingData.date;
-var qStart = bookingData.start;
-var qEnd = bookingData.end;
-var qTerms = bookingData.terms;
-
-// malformed url?
-if (bn && !detaineeDate) {
-  console.log("no date!");
-  var isError = true;
-} else if (detaineeDate && !bn) {
-  console.log("no booking number!");
-  var isError = true;
-} else {
-  var isError = false;
-}
+var bookingData = JSON.parse(localStorage.getItem("bcBookingData")) || false;
+var inmate = bookingData.inmate || false;
+var start = bookingData.start || 0;
+var end = bookingData.end || 0;
+var qTerms = bookingData.terms || "";
 
 // where is our API?
-// deploy: update with new API url
-//var ajaxSrc = "http://localhost:3000/mugshots/api";
-var ajaxSrc = "http://com.mugshots.local:8888/server/v1.1.php";
-
+//var ajaxSrc = "http://www.islandpacket.com/cgi-bin/mugshotsV2.php";
+var ajaxSrc = "./../php/server/mugshotsV2.php";
 // for filtering purposes, create an array of stringified detainee data
 var filterSource = [];
 
@@ -41,46 +26,30 @@ $(document).ready(function() {
   // only need to see the filter spinner when filtering is happening ...
   $("#filterSpinner").hide();
 
-  if (isError) {
-    $("#inmate").html(
-      "<p>There was an error fetching data from the Beaufort County Detention Center. Either the URL is malformed or the data is not available. Click or tap the button below to try again.</p>"
-    );
-  }
-
   // if this is a story page, we don't need a lot of data, just one day's worth, the detaineeDate
   if (type === "detail") {
-    detaineeDate = new Date(parseInt(detaineeDate));
-    var daysBack = Math.round((today - detaineeDate) / (1000 * 60 * 60 * 24));
-    // get data, going back 1 extra day for safety
-    getData(daysBack + 1, daysBack, qStart, qEnd, qTerms);
+    if (inmate) {
+      displayInmate(inmate);
+    } else {
+      $("#inmate").html(
+        '<p>This page is intended to display details about an inmate recently booked into the Beaufort County Detention Center. If you\'re seeing this message, an error has occurred, or you have not selected an inmate from our <a href="http://www.islandpacket.com/mugshots">main inquiry page</a>.</p>'
+      );
+    }
   } else {
-    // it's the index page so check for default start/end params
-    // if no params (qStart,qEnd) were placed in local storage, default start and end is today
-    if (qStart != null) {
-      var startDate = new Date().setDate(today.getDate() - qStart);
-      startDate = new Date(startDate).toISOString().split("T")[0];
-      var start = qStart;
-    } else {
-      // no start params set; default to today's date and 0 days back
-      var startDate = new Date().toISOString().split("T")[0];
-      var start = 0;
-    }
-    if (qEnd != null) {
-      var endDate = new Date().setDate(today.getDate() - qEnd);
-      endDate = new Date(endDate).toISOString().split("T")[0];
-      var end = qEnd;
-    } else {
-      // no end param set; default to today's date and 0 days back
-      var endDate = startDate;
-      var end = 0;
-    }
+    // it's the index page so use stored or default start/end params
+    // if no params were placed in local storage, default start and end is today
+
+    var startDate = new Date().setDate(today.getDate() - start);
+    startDate = new Date(startDate).toISOString().split("T")[0];
+    var endDate = new Date().setDate(today.getDate() - end);
+    endDate = new Date(endDate).toISOString().split("T")[0];
 
     // update date picker to show start and end values
     $("#startDate").val(startDate);
     $("#endDate").val(endDate);
 
     // if qStart is not null, update date range message
-    if (qStart != null) {
+    if (start != null) {
       $("#dateRange").html(
         "Bookings from " +
           toLocaleFromIso(startDate) +
@@ -89,7 +58,7 @@ $(document).ready(function() {
       );
     }
     // get data using passed parameters (set to 0 if not sent in)
-    getData(start, end, qStart, qEnd, qTerms);
+    getData(start, end, qTerms);
   }
 
   // update date picker with min/max attributes and default values
@@ -101,7 +70,7 @@ $(document).ready(function() {
   // add click listener to date submit button
   $("#dateSubmitBtn").on("click", function() {
     // what are filter terms, if any?
-    var termsAtDateSubmit = $("#filterInput")
+    var terms = $("#filterInput")
       .val()
       .trim()
       .toLowerCase();
@@ -139,8 +108,14 @@ $(document).ready(function() {
         toLocaleFromIso(endVal)
     );
 
+    // update local storage
+    var bookingData = JSON.parse(localStorage.getItem("bcBookingData"));
+    bookingData.start = startDays;
+    bookingData.end = endDays;
+    localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
+
     // fetch new data
-    getData(startDays, endDays, qStart, qEnd, termsAtDateSubmit);
+    getData(startDays, endDays, terms);
   });
 
   // add click listener to date shortcut buttons
@@ -162,8 +137,14 @@ $(document).ready(function() {
       .trim()
       .toLowerCase();
 
+    // update local storage
+    var bookingData = JSON.parse(localStorage.getItem("bcBookingData"));
+    bookingData.start = timeBack - 1;
+    bookingData.end = 0;
+    localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
+
     // fetch data based on button attribute and current filter
-    getData(timeBack - 1, 0, qStart, qEnd, terms);
+    getData(timeBack - 1, 0, terms);
   });
 }); // end doc ready
 
@@ -171,7 +152,8 @@ $(document).ready(function() {
 // mistats.contentsource="Posted by Kelly Davis | Source: Beaufort County Detention Center";
 
 // function that calls API to retrieve booking data
-function getData(start, end, qStart, qEnd, terms) {
+
+function getData(start, end, terms) {
   // replace any content in bookingPanel or inmate divs with load spinner
   $("#inmate, #inmates").html(
     '<div id="loadSpinner"><i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i><span class="sr-only">Loading...</span></div>'
@@ -196,7 +178,7 @@ function getData(start, end, qStart, qEnd, terms) {
         response.data.sort(sortDateDesc);
         displayInmates(response.data, start, end, terms);
       } else if (pageType === "bookingDetails") {
-        displayInmate(response.data, qStart, qEnd, terms);
+        displayInmate(response.data, start, end, terms);
       }
     } else {
       console.log(response);
@@ -225,10 +207,8 @@ function displayInmates(data, start, end, terms) {
 
     // build content block
     var inmateBlock =
-      '<div data-booking-number="' +
-      detainee.booknum +
-      '" data-booktime = "' +
-      detainee.booktime +
+      '<div data-index="' +
+      i +
       '" class="detaineeIndex col-lg-2 col-md-2 col-sm-4 col-xs-6">';
 
     // start mugshot/details row
@@ -281,27 +261,9 @@ function displayInmates(data, start, end, terms) {
   // deploy: change url to "http://www.islandpacket.com/news/local/crime/local-arrests/article157204724.html";
 
   $(".detaineeIndex").on("click", function() {
-    // in format 04:51:40 10/04/17 but for wider (ie, IE) compatibility, need date with yyyy
-    // can assume century comes from this year, so lets get first two digits of this year
-    var year = new Date().getFullYear().toString();
-    var century = year.slice(0, 2);
-    // create array of date elements
-    var bookdate = $(this)
-      .attr("data-booktime")
-      .split(" ")[1]
-      .split("/");
-
-    // add century element to year
-    bookdate[2] = century + bookdate[2];
-
-    // reconstitute date string
-    bookdate = Date.parse(bookdate.join("/"));
-    console.log(bookdate);
-
-    // place terms in localStorage
+    // place inmate data and search terms in localStorage
     var bookingData = {
-      bn: $(this).attr("data-booking-number"),
-      date: bookdate,
+      inmate: data[$(this).attr("data-index")],
       terms: encodeURI(
         $("#filterInput")
           .val()
@@ -337,6 +299,10 @@ function displayInmates(data, start, end, terms) {
       // if value is "", user has cleared input field; clear timeout, show 'em all and get out
       if (value === "") {
         $(".detaineeIndex").show("fast");
+        // update local storage
+        var bookingData = JSON.parse(localStorage.getItem("bcBookingData"));
+        bookingData.terms = "";
+        localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
         return;
       }
 
@@ -368,6 +334,11 @@ function displayInmates(data, start, end, terms) {
       //clear filter input
       $("#filterInput").val("");
       terms = null;
+
+      // update local storage
+      var bookingData = JSON.parse(localStorage.getItem("bcBookingData"));
+      bookingData.terms = "";
+      localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
 
       // since this is not a keyup operation, we have to programmatically show all detaineeIndex classes
       $(".detaineeIndex").show("fast");
@@ -442,169 +413,160 @@ function displayInmates(data, start, end, terms) {
 } // end displayInmates function
 
 // for story page
-function displayInmate(data, start, end, terms) {
-  for (var i = 0; i < data.length; i++) {
-    var inmate = data[i];
+function displayInmate(inmate) {
+  // we'll need the full name a couple places, so let's build it once:
+  inmate.name = inmate.first + " " + inmate.middle + " " + inmate.last;
 
-    // build content block if inmate matches URL param
-    if (inmate.booknum === bn) {
-      // we'll need the full name a couple places, so let's build it once:
-      inmate.name = inmate.first + " " + inmate.middle + " " + inmate.last;
+  // change browser title and headline to be this inmate and add booking number attribute to inmate div:
+  $("#story-header > h3").html("Booking details: " + inmate.name);
+  $("#inmate").attr("data-booking-number", inmate.booknum);
 
-      // change browser title and headline to be this inmate and add booking number attribute to inmate div:
-      $("#story-header > h3").html("Booking details: " + inmate.name);
-      $("#inmate").attr("data-booking-number", inmate.booknum);
+  // start photo column
+  var inmateBlock =
+    '<div class="row"><div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">';
 
-      // start photo column
-      var inmateBlock =
-        '<div class="row"><div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">';
+  inmateBlock +=
+    '<img onerror="this.src=\'http://media.islandpacket.com/static/news/crime/mugshots/noPhoto.jpg\'" class="bcmugshot" src="' +
+    inmate.photo +
+    '" title="' +
+    inmate.name +
+    '" alt="' +
+    inmate.name +
+    '" /></div>';
 
-      inmateBlock +=
-        '<img onerror="this.src=\'http://media.islandpacket.com/static/news/crime/mugshots/noPhoto.jpg\'" class="bcmugshot" src="' +
-        inmate.photo +
-        '" title="' +
-        inmate.name +
-        '" alt="' +
-        inmate.name +
-        '" /></div>';
+  // set up detail column, including Return button
+  inmateBlock +=
+    '<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12"><h4>Arrest information <button class="btn btn-primary pull-right" id="returnBtn">Return to Local Arrests</button></h4>';
 
-      // set up detail column, including Return button
-      inmateBlock +=
-        '<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12"><h4>Arrest information <button class="btn btn-primary pull-right" id="returnBtn">Return to Local Arrests</button></h4>';
+  // start details table
+  inmateBlock +=
+    '<table class="details table table-hover table-striped"><tr><th>Booking date / time</th><td>' +
+    inmate.booktime +
+    "</td></tr><tr><th>Release date</th><td>" +
+    inmate.reldate +
+    "</td></tr><tr><th>Height / weight</th><td>" +
+    inmate.height +
+    ", " +
+    inmate.weight +
+    "lbs.</td></tr><tr><th>Date of birth</th><td>" +
+    inmate.dob +
+    " (age " +
+    inmate.age +
+    ")</td></tr><tr><th>City/ZIP</th><td>" +
+    inmate.city +
+    "</td></tr><tr><th>Race / gender</th><td>" +
+    inmate.race +
+    ", " +
+    inmate.sex +
+    "</td></tr></table>";
 
-      // start details table
-      inmateBlock +=
-        '<table class="details table table-hover table-striped"><tr><th>Booking date / time</th><td>' +
-        inmate.booktime +
-        "</td></tr><tr><th>Release date</th><td>" +
-        inmate.reldate +
-        "</td></tr><tr><th>Height / weight</th><td>" +
-        inmate.height +
-        ", " +
-        inmate.weight +
-        "lbs.</td></tr><tr><th>Date of birth</th><td>" +
-        inmate.dob +
-        " (age " +
-        inmate.age +
-        ")</td></tr><tr><th>City/ZIP</th><td>" +
-        inmate.city +
-        "</td></tr><tr><th>Race / gender</th><td>" +
-        inmate.race +
-        ", " +
-        inmate.sex +
-        "</td></tr></table>";
+  // add div at end to hook in details
+  inmateBlock +=
+    '<div class="row"><div id="arrestDetails" class="col-lg-12"></div></div>';
 
-      // add div at end to hook in details
-      inmateBlock +=
-        '<div class="row"><div id="arrestDetails" class="col-lg-12"></div></div>';
+  // place inmate info in DOM; using .html removes load spinner
+  $("#inmate").html(inmateBlock);
 
-      // place inmate info in DOM; using .html removes load spinner
-      $("#inmate").html(inmateBlock);
-
-      // Are there arrest details?
-      // API returns a "present" flag at the beginning of the arrestinfo array:
-      if (inmate.arrestinfo[0].present) {
-        // loop through arrestinfo; start at 1 to skip "present" flag
-        for (
-          var arrestIndex = 1;
-          arrestIndex < inmate.arrestinfo.length;
-          arrestIndex++
-        ) {
-          // is there an agency listed for this arrest?
-          if (inmate.arrestinfo[arrestIndex].aa[0].length === 0) {
-            var agency = "None listed";
-          } else {
-            var agency = inmate.arrestinfo[arrestIndex].aa[0];
-          }
-
-          // is there an officer listed for this arrest?
-          if (inmate.arrestinfo[arrestIndex].ao[0].length === 0) {
-            var officer = "No arresting officer listed";
-          } else {
-            var officer = inmate.arrestinfo[arrestIndex].ao[0];
-          }
-
-          // start table for this arrest
-          var detailBlock =
-            '<table class="table table-hover agencyTable"><tr><th colspan="2" class="text-center">Agency: ' +
-            agency +
-            "</th><td></tr><tr><th>Arresting officer</th><td>" +
-            officer +
-            "</td></tr><tr><th>Charge/bond details</th><td>";
-
-          // are there charges listed?
-          if (inmate.arrestinfo[arrestIndex].of.length > 0) {
-            //loop through offenses for this agency
-            //first, alias this array for simplicity
-            var offenses = inmate.arrestinfo[arrestIndex].of;
-            for (var offIndex = 0; offIndex < offenses.length; offIndex++) {
-              var thisOff = offenses[offIndex].ol[0];
-
-              detailBlock +=
-                '<div class="offense"><span class="leadin">Offense:</span> ' +
-                thisOff +
-                "<br/>";
-
-              // if statute is not the same as the offense, create a statute row
-              if (offenses[offIndex].os[0] !== offenses[offIndex].ol[0]) {
-                detailBlock +=
-                  '<span class="leadin">Statute:</span> ' +
-                  offenses[offIndex].os[0] +
-                  "<br/>";
-              }
-              detailBlock +=
-                '<span class="leadin">Warrant:</span> ' +
-                offenses[offIndex].ow[0] +
-                '<br/><span class="leadin">Court:</span> ' +
-                offenses[offIndex].oc[0] +
-                "<br/>";
-
-              // if bond info exists, add it
-              if (offenses[offIndex].ob[0] !== "") {
-                detailBlock +=
-                  '<span class="leadin">Bond:</span> $' +
-                  offenses[offIndex].ob[0] +
-                  "</div>";
-              } else {
-                detailBlock += '<span class="leadin">Bond:</span> N/A</div>';
-              }
-            } // end offenses loop
-            // close offenses row
-            detailBlock += "</td></tr>";
-          } // end charges exist conditional
-
-          //no charges? close this row
-          else {
-            detailBlock += "None listed</td></tr>";
-          }
-
-          // close agency table
-          detailBlock += "</table>";
-        } // end arrestinfo loop
-      } // end arrestinfo exists condition
-
-      // no arrest info is present
-      else {
-        detailBlock += "No arrest info available</td></tr>";
+  // Are there arrest details?
+  // API returns a "present" flag at the beginning of the arrestinfo array:
+  if (inmate.arrestinfo[0].present) {
+    // loop through arrestinfo; start at 1 to skip "present" flag
+    for (
+      var arrestIndex = 1;
+      arrestIndex < inmate.arrestinfo.length;
+      arrestIndex++
+    ) {
+      // is there an agency listed for this arrest?
+      if (inmate.arrestinfo[arrestIndex].aa === "") {
+        var agency = "None listed";
+      } else {
+        var agency = inmate.arrestinfo[arrestIndex].aa;
       }
-      // close table
-      detailBlock += "</table>";
 
-      // place arrest details in DOM
-      $("#arrestDetails").html(detailBlock);
-    } // end inmate found condition
-  } // end inmate loop
+      // is there an officer listed for this arrest?
+      if (inmate.arrestinfo[arrestIndex].ao === "") {
+        var officer = "No arresting officer listed";
+      } else {
+        var officer = inmate.arrestinfo[arrestIndex].ao;
+      }
+
+      // start table for this arrest
+      var detailBlock =
+        '<table class="table table-hover agencyTable"><tr><th colspan="2" class="text-center">Agency: ' +
+        agency +
+        "</th><td></tr><tr><th>Arresting officer</th><td>" +
+        officer +
+        "</td></tr><tr><th>Charge/bond details</th><td>";
+
+      // are there charges listed?
+      if (inmate.arrestinfo[arrestIndex].of) {
+        //loop through offenses for this agency
+        //first, alias this array for simplicity
+        var offenses = inmate.arrestinfo[arrestIndex].of;
+        // it will either be an object or an array; for simplicity, lets build
+        // logic assuming array, but if it is an object, make it an array of 1 element
+        if (offenses.constructor == Object) {
+          offenses = [offenses];
+        }
+        for (var offIndex = 0; offIndex < offenses.length; offIndex++) {
+          var thisOff = offenses[offIndex].ol;
+
+          detailBlock +=
+            '<div class="offense"><span class="leadin">Offense:</span> ' +
+            thisOff +
+            "<br/>";
+
+          // if statute is not the same as the offense, create a statute row
+          if (offenses[offIndex].os !== offenses[offIndex].ol) {
+            detailBlock +=
+              '<span class="leadin">Statute:</span> ' +
+              offenses[offIndex].os +
+              "<br/>";
+          }
+          detailBlock +=
+            '<span class="leadin">Warrant:</span> ' +
+            offenses[offIndex].ow +
+            '<br/><span class="leadin">Court:</span> ' +
+            offenses[offIndex].oc +
+            "<br/>";
+
+          // if bond info exists, add it
+          if (offenses[offIndex].ob !== "") {
+            detailBlock +=
+              '<span class="leadin">Bond:</span> $' +
+              offenses[offIndex].ob +
+              "</div>";
+          } else {
+            detailBlock += '<span class="leadin">Bond:</span> N/A</div>';
+          }
+        } // end offenses loop
+        // close offenses row
+        detailBlock += "</td></tr>";
+      } // end charges exist conditional
+
+      //no charges? close this row
+      else {
+        detailBlock += "None listed</td></tr>";
+      }
+
+      // close agency table
+      detailBlock += "</table>";
+    } // end arrestinfo loop
+  } // end arrestinfo exists condition
+
+  // no arrest info is present
+  else {
+    detailBlock += "No arrest info available</td></tr>";
+  }
+  // close table
+  detailBlock += "</table>";
+
+  // place arrest details in DOM
+  $("#arrestDetails").html(detailBlock);
 
   // add click listener to return button
   // deploy: change href to http://www.islandpacket.com/news/local/crime/local-arrests
   $("#returnBtn").on("click", function() {
-    // set localStorage
-    var bookingParams = {
-      start: start,
-      end: end,
-      terms: terms
-    };
-    localStorage.setItem("bcBookingData", JSON.stringify(bookingParams));
     location.href = "index.html";
   });
 } // end displayInmate function
@@ -616,6 +578,12 @@ function displayInmate(data, start, end, terms) {
 // we target divs of class ".detaineeIndex" to show/hide by booking number attribute (data-booking-number)
 */
 function runFilter(value) {
+  console.log(value);
+  // update local storage
+  var bookingData = JSON.parse(localStorage.getItem("bcBookingData"));
+  bookingData.terms = value;
+  localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
+
   // entered just a space? show everyone and get out
   if (!value) {
     $(".detaineeIndex").show("fast");
@@ -624,7 +592,10 @@ function runFilter(value) {
   }
 
   // separate terms by spaces, after removing any double spaces
-  var values = value.replace(/\s{2,}/g, " ").split(" ");
+  var values = value
+    .replace(/\s{2,}/g, " ")
+    .toLowerCase()
+    .split(" ");
 
   $(filterSource).each(function(index, element) {
     // reset isMatched flag
@@ -659,11 +630,11 @@ function runFilter(value) {
 
     //after checking this element against each term currently in filter, is isMatched still true?
     if (isMatched) {
-      $(".detaineeIndex[data-booking-number='" + booknum + "']").show("fast");
+      $(".detaineeIndex[data-index='" + index + "']").show("fast");
     }
     // otherwise, hide it
     else {
-      $(".detaineeIndex[data-booking-number='" + booknum + "']").hide("fast");
+      $(".detaineeIndex[data-index='" + index + "']").hide("fast");
     }
 
     if (index + 1 === filterSource.length) {

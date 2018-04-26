@@ -1,111 +1,15 @@
 <?php
 
-// {
-//     "success": true,
-//     "data": [
-//     {
-//     "last": "GIBBS",
-//     "first": "ALEXANDER",
-//     "middle": "",
-//     "city": "BEAUFORT, SC 29906",
-//     "race": "B",
-//     "sex": "Male",
-//     "dob": "01/08/58",
-//     "age": "60",
-//     "height": "6'00\"",
-//     "weight": "180",
-//     "booktime": "07:14:20 04/25/18",
-//     "booknum": "21359",
-//     "inmatenum": "2143",
-//     "reldate": "Confined",
-//     "photo": "http://mugshots.bcgov.net/images/43/2143/18042507422300.jpeg",
-//     "arrestinfo": [
-//     {
-//     "present": true
-//     },
-//     {
-//     "aa": [
-//     "Beaufort County Sheriff's Ofc"
-//     ],
-//     "ao": [
-//     "Abell, B"
-//     ],
-//     "bn": [
-//     "    21359"
-//     ],
-//     "bd": [
-//     "07:14:20 04/25/18"
-//     ],
-//     "rd": [
-//     "0"
-//     ],
-//     "of": [
-//     {
-//     "os": [
-//     "16-17-0725/B"
-//     ],
-//     "ow": [
-//     "20180190041577"
-//     ],
-//     "ol": [
-//     "FalseInfo/LEO/traffstop/avoidarr"
-//     ],
-//     "ob": [
-//     "465.00"
-//     ],
-//     "oc": [
-//     "Beaufort County Magistrate"
-//     ]
-//     }
-//     ]
-//     },
-//     {
-//     "aa": [
-//     "Beaufort County Sheriff's Ofc"
-//     ],
-//     "ao": [
-//     "Keener, J"
-//     ],
-//     "bn": [
-//     "    21359"
-//     ],
-//     "bd": [
-//     "07:14:20 04/25/18"
-//     ],
-//     "rd": [
-//     "0"
-//     ],
-//     "of": [
-//     {
-//     "os": [
-//     "16-17-0725/A"
-//     ],
-//     "ow": [
-//     "2018A0710200118"
-//     ],
-//     "ol": [
-//     "FalseInfo/LEO/reportcrime"
-//     ],
-//     "ob": [
-//     "0.00"
-//     ],
-//     "oc": [
-//     "Beaufort County Magistrate"
-//     ]
-//     }
-//     ]
-//     }
-//     ]
-//     },
 /**
  * Search and display recent confinement data.
  *
- * PHP version 5.4.45
+ *
  *
  * LICENSE: None.
  *
- * @author      Chris Hessert <chris dot hessert at gmail dot com>
- * @version     Release 0.1.0
+ * @author      Kelly Davis <kellydavis1974 at gmail dot com> adapted from original 
+ *              by Chris Hessert <chris dot hessert at gmail dot com>
+ * @version     Release 2.0
  * @since       File available since Release 0.1.0
  */
 
@@ -122,7 +26,9 @@ $sources = array(
 $startTarget = strtotime("$start days 0:0:0", strtotime('now'));
 $endTarget = strtotime("$end days 0:0:0", strtotime('now'));
 
-$test = array();
+/* debug */
+//$test = array();
+
 /*  App  */
 $i = 0;
 foreach ( $sources as $source )
@@ -141,7 +47,9 @@ foreach ( $sources as $source )
 		// Only process inmates for the date target window.
 		if ( $timestamp >= $startTarget && $timestamp <= $endTarget)
 		{
-            $test[] = $inmate;
+
+            /* debug */
+            //$test[] = $inmate;
 
 			$name_last = (string) $inmate->nl;
 			$name_first = (string) $inmate->nf;
@@ -194,7 +102,7 @@ foreach ( $sources as $source )
 			$data[$i]['data'][$j]['booktime'] = (string) date("g:i a, M j, Y",strtotime($inmate->bd));
 
             // Release date
-			$data[$i]['data'][$j]['reldate'] = (string) date("g:i a",strtotime($inmate->tmout)).", ".date("M j, Y",strtotime($inmate->dtout));
+			$data[$i]['data'][$j]['reldate'] = ($inmate->dtout == "Confined") ? (string) "Confined" : (string) date("g:i a",strtotime($inmate->tmout)).", ".date("M j, Y",strtotime($inmate->dtout));
             
             // Inmate number.
 			$data[$i]['data'][$j]['inmatenum'] = (string) $inmate->nn;
@@ -207,6 +115,7 @@ foreach ( $sources as $source )
 
 // Return data in JSON format.
 header('Content-Type: application/json');
-echo json_encode( $data );
-//echo json_encode($test);
+echo json_encode( $data[0] );
+/* debug */
+//echo json_encode( $test );
 ?>
