@@ -76,7 +76,6 @@ foreach ( $sources as $source )
             // age from current year to yield birth year
             $dob = explode("/", $inmate->dob);
             $inmate->dob = $dob[0]."/".$dob[1]."/".(date("Y") - $inmate->age);
-
             $data[$i]['data'][$j]['dob'] = (string) date("M j, Y", strtotime($inmate->dob));
             
             // Age.
