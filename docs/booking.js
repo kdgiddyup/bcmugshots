@@ -257,8 +257,10 @@ function displayInmates(data, start, end, terms) {
   }
 
   // add click listener to get user to mugshot story page
-  var url = "detail.html";
-  // deploy: change url to "http://www.islandpacket.com/news/local/crime/local-arrests/article157204724.html";
+  //var url = "detail.html";
+  // deploy:
+  var url =
+    "http://www.islandpacket.com/news/local/crime/local-arrests/article157204724.html";
 
   $(".detaineeIndex").on("click", function() {
     // place inmate data and search terms in localStorage
@@ -574,7 +576,9 @@ function displayInmate(inmate) {
   // add click listener to return button
   // deploy: change href to http://www.islandpacket.com/news/local/crime/local-arrests
   $("#returnBtn").on("click", function() {
-    location.href = "index.html";
+    //location.href = "index.html";
+    location.href =
+      "http://www.islandpacket.com/news/local/crime/local-arrests";
   });
 } // end displayInmate function
 
