@@ -72,12 +72,10 @@ foreach ( $sources as $source )
             // Date of birth. Needs a little wrangling because of two-digit pre-epoch years;
             // strtotime() is not reliable since it maps values between 0-69 to 2000-2069 
             // and values between 70-100 to 1970-2000.
-            // Custom future-proof logic, then: Current 4-digit year - 2-digit inmate birthYear yields 4-digit string whose first 
-            // two digits are the correct birth century; concat those with birthYear to yield proper 4-digit birth year
+            // Helped here by fact that we also get their age so we can just subtract 
+            // age from current year to yield birth year
             $dob = explode("/", $inmate->dob);
-            $birthYear = $dob[2];
-            $birthCentury = substr( date("Y")-$birthYear, 0, 2 );
-            $inmate->dob = $dob[0]."/".$dob[1]."/".$birthCentury.$birthYear;
+            $inmate->dob = $dob[0]."/".$dob[1]."/".(date("Y") - $inmate->age);
 
             $data[$i]['data'][$j]['dob'] = (string) date("M j, Y", strtotime($inmate->dob));
             
