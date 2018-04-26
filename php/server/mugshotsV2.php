@@ -69,9 +69,18 @@ foreach ( $sources as $source )
             // Gender
 			$data[$i]['data'][$j]['sex'] = (string) explode(" / ",$inmate->racegen)[1];
 
-			// Date of birth.
-            $data[$i]['data'][$j]['dob'] = (string) date("M j, Y", strtotime($inmate->dob));
+            // Date of birth. Needs a little wrangling because of two-digit pre-epoch years;
+            // strtotime() maps values between 0-69 to 2000-2069 and values between 70-100 to 1970-2000.
+            // logic: birthYr = $iunmatestring substr (string $2-digit-year com)
+            //(year now - 2-digit-year component) >= 2000 ? century = 20 : century = 19
+            $dob = explode("/", $inmate->dob);
+            $birthYear = $dob[2];
+            $birthCentury = substr( date("Y")-$birthYear, 0, 2 );
+            $birthYearLong = $birthCentury.$birthYear;
+            $inmate->dob = $dob[0]."/".$dob[1]."/".$birthYearLong;
 
+            $data[$i]['data'][$j]['dob'] = (string) date("M j, Y", strtotime($inmate->dob));
+            
             // Age.
             $data[$i]['data'][$j]['age'] = (string) $inmate->age;
 
