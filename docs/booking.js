@@ -7,15 +7,15 @@ var minDate = new Date().setDate(today.getDate() - 90);
 minDate = new Date(minDate).toISOString().split("T")[0];
 
 // get info from localStorage, if any
-var bookingData = JSON.parse(localStorage.getItem("bcBookingData")) || false;
-var inmate = bookingData.inmate || false;
-var start = bookingData.start || 0;
+var bookingData = JSON.parse(localStorage.getItem("bcBookingData")) || {};
+var inmate = bookingData.inmate || {};
+var start = bookingData.start || 1;
 var end = bookingData.end || 0;
 var qTerms = bookingData.terms || "";
 
 // where is our API?
-//var ajaxSrc = "http://www.islandpacket.com/cgi-bin/mugshotsV2.php";
 var ajaxSrc = "http://dev.nandointeractive.com/mugshots/";
+
 // for filtering purposes, create an array of stringified detainee data
 var filterSource = [];
 
@@ -57,7 +57,7 @@ $(document).ready(function() {
           toLocaleFromIso(endDate)
       );
     }
-    // get data using passed parameters (set to 0 if not sent in)
+    // get data using passed parameters
     getData(start, end, qTerms);
   }
 
@@ -109,7 +109,7 @@ $(document).ready(function() {
     );
 
     // update local storage
-    var bookingData = JSON.parse(localStorage.getItem("bcBookingData"));
+    var bookingData = JSON.parse(localStorage.getItem("bcBookingData")) || {};
     bookingData.start = startDays;
     bookingData.end = endDays;
     localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
@@ -138,7 +138,7 @@ $(document).ready(function() {
       .toLowerCase();
 
     // update local storage
-    var bookingData = JSON.parse(localStorage.getItem("bcBookingData"));
+    var bookingData = JSON.parse(localStorage.getItem("bcBookingData")) || {};
     bookingData.start = timeBack - 1;
     bookingData.end = 0;
     localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
@@ -302,7 +302,8 @@ function displayInmates(data, start, end, terms) {
       if (value === "") {
         $(".detaineeIndex").show("fast");
         // update local storage
-        var bookingData = JSON.parse(localStorage.getItem("bcBookingData"));
+        var bookingData =
+          JSON.parse(localStorage.getItem("bcBookingData")) || {};
         bookingData.terms = "";
         localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
         return;
@@ -338,7 +339,7 @@ function displayInmates(data, start, end, terms) {
       terms = null;
 
       // update local storage
-      var bookingData = JSON.parse(localStorage.getItem("bcBookingData"));
+      var bookingData = JSON.parse(localStorage.getItem("bcBookingData")) || {};
       bookingData.terms = "";
       localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
 
@@ -420,7 +421,9 @@ function displayInmate(inmate) {
   inmate.name = inmate.first + " " + inmate.middle + " " + inmate.last;
 
   // change browser title and headline to be this inmate and add booking number attribute to inmate div:
-  $("#story-header > h3").html("Booking details: " + inmate.name);
+  $("#story-header")
+    .children(".title")
+    .html("Booking details: " + inmate.name);
   $("#inmate").attr("data-booking-number", inmate.booknum);
 
   // start photo column
@@ -591,11 +594,11 @@ function displayInmate(inmate) {
 function runFilter(value) {
   // update local storage
 
-  var bookingData = JSON.parse(localStorage.getItem("bcBookingData"));
-  if (bookingData) {
-    bookingData.terms = value;
-    localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
-  }
+  var bookingData = JSON.parse(localStorage.getItem("bcBookingData")) || {};
+
+  bookingData.terms = value;
+  localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
+
   // entered just a space? show everyone and get out
   if (!value) {
     $(".detaineeIndex").show("fast");
