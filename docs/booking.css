@@ -1,0 +1,109 @@
+#loadSpinner {
+  margin: 20px auto;
+  width: 90px;
+}
+
+#returnBtn {
+  margin: 0 0 10px 0;
+}
+
+.offense {
+  margin: 0 0 10px 0;
+  padding: 0 0 5px 0;
+  border-bottom: 1px dotted #ccc;
+}
+
+#datepicker {
+  margin: 10px 0 40px 0;
+}
+
+.dateShortcut {
+  margin: 0 0 5px 0;
+}
+
+#dateSubmitBtn {
+  margin: 10px 0;
+}
+
+#inmates {
+  padding: 50px 0 0 0;
+}
+
+.details {
+  font-size: 1em;
+}
+
+.bcmugshot {
+  width: 100%;
+  box-shadow: 5px 5px 25px -7px #000;
+}
+
+#filter {
+  margin: 30px 0;
+}
+
+.detaineeStory > h2.name {
+  height: auto;
+}
+
+#inmate > div > div:nth-child(2) > h4 {
+  margin: 30px 0 0 0;
+  font-size: 1.2em;
+}
+
+.detaineeStory td {
+  font-size: 0.9em;
+}
+
+.detaineeIndex {
+  cursor: pointer;
+}
+
+.btn a {
+  color: #fff;
+}
+
+.bookings {
+  width: 100%;
+  padding: 0 0 100px 0;
+}
+
+.leadin {
+  font-weight: bold;
+}
+
+h2.name {
+  font-size: 0.8em;
+  line-height: 1em;
+  margin: 0;
+  height: 25px;
+}
+
+p.booktime {
+  margin: 1px 0 0 0;
+  font-size: 0.9em;
+  line-height: 1.1em;
+}
+
+.caption {
+  height: 70px;
+  margin: 2px 0 0 0;
+}
+
+.col-xs-12 {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+/*  some media query stuff */
+
+/* If the browser window is smaller than 400px, do this stuff . . . */
+
+@media only screen and (max-width: 400px) {
+  h2.name {
+    font-size: 0.8em;
+  }
+  .caption {
+    height: 65px;
+  }
+}
