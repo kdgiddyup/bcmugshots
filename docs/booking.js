@@ -208,7 +208,9 @@ function displayInmates(data, start, end, terms) {
 
     // build content block
     var inmateBlock =
-      '<div data-booknum="' +
+      '<div data-index="' +
+      i +
+      '" data-booknum="' +
       detainee.booknum +
       '" class="detaineeIndex col-lg-2 col-md-2 col-sm-4 col-xs-6">';
 
@@ -266,7 +268,7 @@ function displayInmates(data, start, end, terms) {
   $(".detaineeIndex").on("click", function() {
     // place inmate data and search terms in localStorage
     var bookingData = {
-      inmate: data[$(this).attr("data-booknum")],
+      inmate: data[$(this).attr("data-index")],
       terms: encodeURI(
         $("#filterInput")
           .val()
