@@ -14,8 +14,8 @@ var end = bookingData.end || 0;
 var qTerms = bookingData.terms || "";
 
 // where is our API?
-// var ajaxSrc = "http://dev.nandointeractive.com/mugshots/";
-var ajaxSrc = "http://bcmugshots/php/server/v3.php";
+var ajaxSrc = //"http://dev.nandointeractive.com/mugshots/beaufort/";
+  "./../php/server/v3.php";
 
 // for filtering purposes, create an array of stringified detainee data
 var filterSource = [];
@@ -171,7 +171,6 @@ function getData(start, end, terms) {
 
   $.get(ajaxSrc + "?start=" + start + "&end=" + end, function(response) {
     if (response.success) {
-      console.log(response);
       // are we on index page or details page?
       var pageType = $(".bookings").attr("data-page-type");
 
@@ -205,12 +204,14 @@ function displayInmates(data, start, end, terms) {
     var detainee = data[i];
 
     // add stringified version to filterSource
-    filterSource.push(JSON.stringify(detainee));
+    filterSource.push(JSON.stringify(detainee).toLowerCase());
 
     // build content block
     var inmateBlock =
       '<div data-index="' +
       i +
+      '" data-booknum="' +
+      detainee.booknum +
       '" class="detaineeIndex col-lg-2 col-md-2 col-sm-4 col-xs-6">';
 
     // start mugshot/details row
@@ -593,68 +594,61 @@ function displayInmate(inmate) {
 /* loop through stringified data stored in filterSource array and look for matches to passed in string as "value"; if found, show that offender. if not, hide it. 
 // we target divs of class ".detaineeIndex" to show/hide by booking number attribute (data-booking-number)
 */
-function runFilter(value) {
+function runFilter(term) {
   // update local storage
-
   var bookingData = JSON.parse(localStorage.getItem("bcBookingData")) || {};
-
-  bookingData.terms = value;
+  bookingData.terms = term;
   localStorage.setItem("bcBookingData", JSON.stringify(bookingData));
 
   // entered just a space? show everyone and get out
-  if (!value) {
+  if (!term || term === " ") {
     $(".detaineeIndex").show("fast");
     $("#filterSpinner").hide("fast");
     return;
   }
 
   // separate terms by spaces, after removing any double spaces
-  var values = value
+  var terms = term
     .replace(/\s{2,}/g, " ")
     .toLowerCase()
     .split(" ");
 
-  $(filterSource).each(function(index, element) {
+  // filterSource is an array of strings of values associated with each detainee
+  $(filterSource).each(function(index, detValues) {
+    // detValues represents the the value string for each detainee object
     // reset isMatched flag
     var isMatched = false;
 
-    // element represents the stringified version of each detainee object
-    // create a JSON version to grab the booknum value
-    var booknum = JSON.parse(element).booknum;
+    // parse string so we can access a couple values
+    var detainee = JSON.parse(detValues);
 
-    // check this element string against each term
-    for (var v = 0; v < values.length; v++) {
-      // does the filter input value match any part of this detainee string?
-      if (element.toLowerCase().indexOf(values[v]) === -1) {
+    // check this detail string against each term
+    for (var t = 0; t < terms.length; t++) {
+      // does the filter input value match any of this detainee's values?
+      if (detValues.indexOf(terms[t]) === -1) {
         // no? set isMatched to false, exit loop because there's no need to keep searching
         isMatched = false;
         break;
-      } else {
-        // yes?
-        // special case for 'male' since it is included in 'female'
-        // if value being checked is male, but inmate record has "female", then this is not a match
-        if (
-          values[v] === "male" &&
-          element.toLowerCase().indexOf("female") > -1
-        ) {
+      }
+      // yes?
+      ///set isMatched to true but keep checking other words in value array
+      else {
+        isMatched = true;
+        // make sure we don't match female with male
+        if (terms[t] === "male" && detainee.sex.toLowerCase() === "female") {
           isMatched = false;
-          break;
         }
-        //set isMatched to true but keep checking other words in value array
-        else isMatched = true;
       }
     }
 
     //after checking this element against each term currently in filter, is isMatched still true?
+
     if (isMatched) {
-      $(".detaineeIndex[data-index='" + index + "']").show("fast");
+      $(".detaineeIndex[data-booknum='" + detainee.booknum + "']").show("fast");
     }
     // otherwise, hide it
     else {
-      $(".detaineeIndex[data-index='" + index + "']").hide("fast");
-    }
-
-    if (index + 1 === filterSource.length) {
+      $(".detaineeIndex[data-booknum='" + detainee.booknum + "']").hide("fast");
     }
   });
   // when filtering loop completes, remove spinner from input
