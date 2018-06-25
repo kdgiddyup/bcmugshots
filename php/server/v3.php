@@ -10,7 +10,7 @@
  *
  * @author      Kelly Davis <kellydavis1974 at gmail dot com> adapted 
  * from original by Chris Hessert <chris dot hessert at gmail dot com>
- * @version     Release 2.0
+ * @version     Release 3.0
  * @since       File available since Release 0.1.0
  */
 
