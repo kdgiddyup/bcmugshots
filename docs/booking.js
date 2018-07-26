@@ -262,7 +262,7 @@ function displayInmates(data, start, end, terms) {
   //var url = "detail.html";
   // deploy:
   var url =
-    "http://www.islandpacket.com/news/local/crime/local-arrests/article157204724.html";
+    "https://www.islandpacket.com/news/local/crime/local-arrests/article157204724.html";
 
   $(".detaineeIndex").on("click", function() {
     // place inmate data and search terms in localStorage
