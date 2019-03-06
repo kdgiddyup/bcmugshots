@@ -15,8 +15,8 @@ var qTerms = bookingData.terms || "";
 
 // where is our API?
 var ajaxSrc = //"http://dev.nandointeractive.com/mugshots/beaufort/";
-  "./../php/server/v3.php";
-
+  //"./../php/server/v3.php";
+"https://lcbcbooking.herokuapp.com";
 // for filtering purposes, create an array of stringified detainee data
 var filterSource = [];
 
@@ -169,7 +169,7 @@ function getData(start, end, terms) {
     .removeClass()
     .addClass("fa fa-arrow-down");
 
-  $.get(ajaxSrc + "?start=" + start + "&end=" + end, function(response) {
+  $.get(ajaxSrc + "?requested=beaufort&start=" + start + "&end=" + end, function(response) {
     if (response.success) {
       // are we on index page or details page?
       var pageType = $(".bookings").attr("data-page-type");
