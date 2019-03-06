@@ -174,11 +174,7 @@ function getData(start, end, terms) {
     .removeClass()
     .addClass("fa fa-arrow-down");
 
-<<<<<<< HEAD
   $.get(ajaxSrc + "?requested=beaufort&start=" + start + "&end=" + end, function(response) {
-=======
-  $.get(ajaxSrc + "&start=" + start + "&end=" + end, function(response) {
->>>>>>> 73870f1e533c68529ae60d19a3db0831f2c43770
     if (response.success) {
       // are we on index page or details page?
       var pageType = $(".bookings").attr("data-page-type");
