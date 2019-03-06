@@ -14,9 +14,14 @@ var end = bookingData.end || 0;
 var qTerms = bookingData.terms || "";
 
 // where is our API?
+<<<<<<< HEAD
 var ajaxSrc = //"http://dev.nandointeractive.com/mugshots/beaufort/";
   //"./../php/server/v3.php";
 "https://lcbcbooking.herokuapp.com";
+=======
+var ajaxSrc = "https://bookings.thestate.com?requested=beaufort";
+
+>>>>>>> 73870f1e533c68529ae60d19a3db0831f2c43770
 // for filtering purposes, create an array of stringified detainee data
 var filterSource = [];
 
@@ -169,7 +174,11 @@ function getData(start, end, terms) {
     .removeClass()
     .addClass("fa fa-arrow-down");
 
+<<<<<<< HEAD
   $.get(ajaxSrc + "?requested=beaufort&start=" + start + "&end=" + end, function(response) {
+=======
+  $.get(ajaxSrc + "&start=" + start + "&end=" + end, function(response) {
+>>>>>>> 73870f1e533c68529ae60d19a3db0831f2c43770
     if (response.success) {
       // are we on index page or details page?
       var pageType = $(".bookings").attr("data-page-type");
@@ -263,7 +272,7 @@ function displayInmates(data, start, end, terms) {
   //var url = "detail.html";
   // deploy:
   var url =
-    "http://www.islandpacket.com/news/local/crime/local-arrests/article157204724.html";
+    "https://www.islandpacket.com/news/local/crime/local-arrests/article157204724.html";
 
   $(".detaineeIndex").on("click", function() {
     // place inmate data and search terms in localStorage

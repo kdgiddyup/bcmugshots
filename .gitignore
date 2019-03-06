@@ -24,7 +24,6 @@
 ######################
 *.log
 *.sql
-*.sqlite
 
 # caches
 cache/
@@ -44,6 +43,6 @@ Thumbs.db
 ###############################
 .env
 
-#npm packages #
-###############
+# npm packages #
+################
 node_modules/
